@@ -1,0 +1,80 @@
+CREATE DATABASE IF NOT EXISTS app_moviles
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE app_moviles;
+
+-- Tabla usuarios
+CREATE TABLE usuarios (
+ id_usuario INT PRIMARY KEY AUTO_INCREMENT,
+ nombre VARCHAR(100) NOT NULL,
+ apellido_paterno VARCHAR(100) NOT NULL,
+ apellido_materno VARCHAR(100),
+ usuario VARCHAR(100) UNIQUE NOT NULL,
+ correo_electronico VARCHAR(150) UNIQUE NOT NULL,
+ contrasena VARCHAR(255) NOT NULL,
+ foto_perfil VARCHAR(255),
+ telefono VARCHAR(50),
+ fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla publicaciones
+CREATE TABLE publicaciones (
+ id_publicacion INT PRIMARY KEY AUTO_INCREMENT,
+ id_usuario INT NOT NULL,
+ titulo VARCHAR(200) NOT NULL,
+ descripcion TEXT,
+ fecha_publicacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+ cantidad_likes INT DEFAULT 0,
+ cantidad_comentarios INT DEFAULT 0,
+ cantidad_favoritos INT DEFAULT 0,
+ estado ENUM('activo', 'inactivo', 'eliminado') DEFAULT 'activo',
+ FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+);
+
+-- Tabla comentarios
+CREATE TABLE comentarios (
+ id_comentario INT PRIMARY KEY AUTO_INCREMENT,
+ id_publicacion INT NOT NULL,
+ id_usuario INT NOT NULL,
+ id_comentario_padre INT,
+ descripcion TEXT NOT NULL,
+ cantidad_likes INT DEFAULT 0,
+ cantidad_dislikes INT DEFAULT 0,
+ fecha_comentario DATETIME DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE,
+ FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+ FOREIGN KEY (id_comentario_padre) REFERENCES comentarios(id_comentario) ON DELETE CASCADE
+);
+
+-- Likes en comentarios
+CREATE TABLE likes_comentarios (
+ id_like_comentario INT PRIMARY KEY AUTO_INCREMENT,
+ id_usuario INT NOT NULL,
+ id_comentario INT NOT NULL,
+ tipo ENUM('like', 'dislike') NOT NULL,
+ fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+ FOREIGN KEY (id_comentario) REFERENCES comentarios(id_comentario) ON DELETE CASCADE,
+ UNIQUE(id_usuario, id_comentario)
+);
+
+-- Imágenes publicación
+CREATE TABLE imagenes_publicacion (
+ id_imagen INT PRIMARY KEY AUTO_INCREMENT,
+ id_publicacion INT NOT NULL,
+ url_imagen VARCHAR(255) NOT NULL,
+ orden INT DEFAULT 0,
+ FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE
+);
+
+-- Favoritos
+CREATE TABLE favoritos (
+ id_favorito INT PRIMARY KEY AUTO_INCREMENT,
+ id_usuario INT NOT NULL,
+ id_publicacion INT NOT NULL,
+ fecha_guardado DATETIME DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,
+ FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE,
+ UNIQUE(id_usuario, id_publicacion)
+);
