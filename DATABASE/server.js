@@ -245,35 +245,43 @@ app.post('/api/login', async (req, res) => {
 
 // ==================== OBTENER PERFIL DE USUARIO ====================
 
-app.get('/api/usuario/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+// app.get('/api/usuario/:id', async (req, res) => {
+//     try {
+//         const { id } = req.params;
 
-        const [usuarios] = await connection.promise().query(
-            'SELECT id_usuario, nombre, apellido_paterno, apellido_materno, usuario, correo_electronico, foto_perfil, telefono, fecha_registro FROM usuarios WHERE id_usuario = ?',
-            [id]
-        );
+//         const [usuarios] = await connection.promise().query(
+//             'SELECT id_usuario, nombre, apellido_paterno, apellido_materno, usuario, correo_electronico, foto_perfil, telefono, fecha_registro FROM usuarios WHERE id_usuario = ?',
+//             [id]
+//         );
 
-        if (usuarios.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario no encontrado'
-            });
-        }
+//         if (usuarios.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Usuario no encontrado'
+//             });
+//         }
 
-        res.status(200).json({
-            success: true,
-            data: usuarios[0]
-        });
+//         res.status(200).json({
+//             success: true,
+//             data: usuarios[0]
+//         });
 
-    } catch (error) {
-        console.error('Error al obtener usuario:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor'
-        });
-    }
-});
+//     } catch (error) {
+//         console.error('Error al obtener usuario:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Error interno del servidor'
+//         });
+//     }
+// });
+
+// ==================== RUTAS DE PUBLICACIONES ====================
+const publicacionesRoutes = require('./SRC/publicaciones')(connection);
+app.use('/api/publicaciones', publicacionesRoutes);
+
+// ==================== RUTAS DE PERFIL ====================
+const perfilRoutes = require('./SRC/perfil')(connection);
+app.use('/api/usuarios', perfilRoutes);
 
 // ==================== RUTA DE PRUEBA ====================
 
