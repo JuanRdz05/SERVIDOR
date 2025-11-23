@@ -86,6 +86,23 @@ const validarContrasena = (password) => {
     return tieneMayuscula && tieneMinuscula && tieneNumero;
 };
 
+// ==================== RUTAS DE PUBLICACIONES ====================
+const publicacionesRoutes = require('./SRC/publicaciones')(connection);
+app.use('/api/publicaciones', publicacionesRoutes);
+
+// ==================== RUTAS DE PERFIL ====================
+const perfilRoutes = require('./SRC/perfil')(connection);
+app.use('/api/usuarios', perfilRoutes);
+
+// ==================== RUTA DE PRUEBA ====================
+app.get('/test', (req, res) => {
+    res.json({ message: 'Servidor funcionando correctamente ✅' });
+});
+
+// ==================== RUTAS DE REACCIONES ====================
+const reaccionesRoutes = require('./SRC/reacciones')(connection);
+app.use('/api/reacciones', reaccionesRoutes);
+
 // ==================== REGISTRO DE USUARIO ====================
 
 app.post('/api/registro', upload.single('foto_perfil'), async (req, res) => {
@@ -275,19 +292,7 @@ app.post('/api/login', async (req, res) => {
 //     }
 // });
 
-// ==================== RUTAS DE PUBLICACIONES ====================
-const publicacionesRoutes = require('./SRC/publicaciones')(connection);
-app.use('/api/publicaciones', publicacionesRoutes);
 
-// ==================== RUTAS DE PERFIL ====================
-const perfilRoutes = require('./SRC/perfil')(connection);
-app.use('/api/usuarios', perfilRoutes);
-
-// ==================== RUTA DE PRUEBA ====================
-
-app.get('/test', (req, res) => {
-    res.json({ message: 'Servidor funcionando correctamente ✅' });
-});
 
 // Iniciar servidor
 const PORT = 3000;
