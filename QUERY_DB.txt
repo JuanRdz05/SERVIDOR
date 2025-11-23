@@ -78,3 +78,18 @@ CREATE TABLE favoritos (
  FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE,
  UNIQUE(id_usuario, id_publicacion)
 );
+
+-- Reacciones
+CREATE TABLE `reacciones` (
+  `id_reaccion` INT NOT NULL AUTO_INCREMENT,
+  `id_usuario` INT NOT NULL,
+  `id_publicacion` INT NOT NULL,
+  `tipo_reaccion` ENUM('like', 'dislike') NOT NULL,
+  `fecha_reaccion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_reaccion`),
+  UNIQUE KEY `unique_user_publicacion` (`id_usuario`, `id_publicacion`),
+  KEY `id_usuario` (`id_usuario`),
+  KEY `id_publicacion` (`id_publicacion`),
+  CONSTRAINT `reacciones_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE,
+  CONSTRAINT `reacciones_ibfk_2` FOREIGN KEY (`id_publicacion`) REFERENCES `publicaciones` (`id_publicacion`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

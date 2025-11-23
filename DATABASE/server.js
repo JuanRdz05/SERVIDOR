@@ -103,6 +103,10 @@ app.get('/test', (req, res) => {
 const reaccionesRoutes = require('./SRC/reacciones')(connection);
 app.use('/api/reacciones', reaccionesRoutes);
 
+// ==================== RUTAS DE COMENTARIOS ====================
+const comentariosRoutes = require('./SRC/comentarios')(connection);
+app.use('/api/comentarios', comentariosRoutes);
+
 // ==================== REGISTRO DE USUARIO ====================
 
 app.post('/api/registro', upload.single('foto_perfil'), async (req, res) => {
