@@ -6,10 +6,12 @@ const fs = require('fs');
 const app = express();
 const connection = require('./CONFIG/database');
 
+// ==================== MIDDLEWARES ====================
+// IMPORTANTE: Los middlewares deben ir ANTES de las rutas
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-// Configuración de Multer para subir imágenes
+// ==================== CONFIGURACIÓN DE MULTER ====================
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = './uploads/avatars';
@@ -19,7 +21,6 @@ const storage = multer.diskStorage({
         cb(null, dir);
     },
     filename: (req, file, cb) => {
-        // Usar .jpg como extensión por defecto si no viene ninguna
         const ext = path.extname(file.originalname) || '.jpg';
         const uniqueName = `avatar_${Date.now()}${ext}`;
         cb(null, uniqueName);
@@ -36,7 +37,6 @@ const upload = multer({
             fieldname: file.fieldname
         });
 
-        // Tipos MIME permitidos (incluye variantes que envía Android)
         const allowedMimeTypes = [
             'image/jpeg',
             'image/jpg', 
@@ -44,17 +44,12 @@ const upload = multer({
             'image/gif',
             'image/webp',
             'image/*',
-            'application/octet-stream' // Android a veces envía esto
+            'application/octet-stream'
         ];
 
-        // Extensiones permitidas
         const allowedExtensions = /jpeg|jpg|png|gif|webp/;
-        
-        // Verificar extensión del archivo
         const extname = path.extname(file.originalname).toLowerCase();
         const isExtensionValid = allowedExtensions.test(extname.replace('.', ''));
-        
-        // Verificar tipo MIME
         const isMimeTypeValid = allowedMimeTypes.some(type => 
             file.mimetype.startsWith('image/') || type === file.mimetype
         );
@@ -70,7 +65,6 @@ const upload = multer({
 });
 
 // ==================== VALIDACIONES ====================
-
 const validarEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
@@ -86,28 +80,7 @@ const validarContrasena = (password) => {
     return tieneMayuscula && tieneMinuscula && tieneNumero;
 };
 
-// ==================== RUTAS DE PUBLICACIONES ====================
-const publicacionesRoutes = require('./SRC/publicaciones')(connection);
-app.use('/api/publicaciones', publicacionesRoutes);
-
-// ==================== RUTAS DE PERFIL ====================
-const perfilRoutes = require('./SRC/perfil')(connection);
-app.use('/api/usuarios', perfilRoutes);
-
-// ==================== RUTA DE PRUEBA ====================
-app.get('/test', (req, res) => {
-    res.json({ message: 'Servidor funcionando correctamente ✅' });
-});
-
-// ==================== RUTAS DE REACCIONES ====================
-const reaccionesRoutes = require('./SRC/reacciones')(connection);
-app.use('/api/reacciones', reaccionesRoutes);
-
-// ==================== RUTAS DE COMENTARIOS ====================
-const comentariosRoutes = require('./SRC/comentarios')(connection);
-app.use('/api/comentarios', comentariosRoutes);
-
-// ==================== REGISTRO DE USUARIO ====================
+// ==================== REGISTRO Y LOGIN ====================
 
 app.post('/api/registro', upload.single('foto_perfil'), async (req, res) => {
     try {
@@ -212,8 +185,6 @@ app.post('/api/registro', upload.single('foto_perfil'), async (req, res) => {
     }
 });
 
-// ==================== LOGIN DE USUARIO ====================
-
 app.post('/api/login', async (req, res) => {
     try {
         const { usuario, contrasena } = req.body;
@@ -264,42 +235,47 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ==================== OBTENER PERFIL DE USUARIO ====================
+// ==================== RUTAS MODULARES ====================
 
-// app.get('/api/usuario/:id', async (req, res) => {
-//     try {
-//         const { id } = req.params;
+// Importar y registrar rutas de módulos
+const publicacionesRoutes = require('./SRC/publicaciones');
+const reaccionesRoutes = require('./SRC/reacciones');
+const comentariosRoutes = require('./SRC/comentarios');
+const perfilRoutes = require('./SRC/perfil');
 
-//         const [usuarios] = await connection.promise().query(
-//             'SELECT id_usuario, nombre, apellido_paterno, apellido_materno, usuario, correo_electronico, foto_perfil, telefono, fecha_registro FROM usuarios WHERE id_usuario = ?',
-//             [id]
-//         );
+app.use('/api/publicaciones', publicacionesRoutes(connection));
+app.use('/api/reacciones', reaccionesRoutes(connection));
+app.use('/api/comentarios', comentariosRoutes(connection));
+app.use('/api/usuarios', perfilRoutes(connection));
 
-//         if (usuarios.length === 0) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Usuario no encontrado'
-//             });
-//         }
+// ==================== RUTA DE PRUEBA ====================
+app.get('/test', (req, res) => {
+    res.json({ message: 'Servidor funcionando correctamente ✅' });
+});
 
-//         res.status(200).json({
-//             success: true,
-//             data: usuarios[0]
-//         });
-
-//     } catch (error) {
-//         console.error('Error al obtener usuario:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Error interno del servidor'
-//         });
-//     }
-// });
-
-
-
-// Iniciar servidor
+// ==================== INICIAR SERVIDOR ====================
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`📋 Rutas disponibles:`);
+    console.log(`   AUTH:`);
+    console.log(`   - POST /api/registro`);
+    console.log(`   - POST /api/login`);
+    console.log(`   PUBLICACIONES:`);
+    console.log(`   - GET    /api/publicaciones`);
+    console.log(`   - POST   /api/publicaciones`);
+    console.log(`   - DELETE /api/publicaciones/:id`);
+    console.log(`   - PUT    /api/publicaciones/:id`);
+    console.log(`   REACCIONES:`);
+    console.log(`   - POST /api/reacciones/publicacion/:id`);
+    console.log(`   - POST /api/reacciones/favorito/:id`);
+    console.log(`   - GET  /api/reacciones/estado/:idPub/:idUser`);
+    console.log(`   COMENTARIOS:`);
+    console.log(`   - GET    /api/comentarios/publicacion/:idPublicacion`);
+    console.log(`   - POST   /api/comentarios`);
+    console.log(`   - POST   /api/comentarios/like/:idComentario`);
+    console.log(`   - DELETE /api/comentarios/:idComentario`);
+    console.log(`   PERFIL:`);
+    console.log(`   - PUT /api/usuarios/:id`);
+    console.log(`   - PUT /api/usuarios/:id/foto`);
 });
